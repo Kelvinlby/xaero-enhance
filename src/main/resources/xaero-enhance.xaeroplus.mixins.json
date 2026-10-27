@@ -1,0 +1,16 @@
+{
+	"required": true,
+	"package": "mod.kelvinlby.xaeroenhance.xaeroplus",
+	"plugin": "mod.kelvinlby.xaeroenhance.XaeroPlusMixinPlugin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"AbstractHighlightVertexBufferMixin",
+		"ChunkHighlightCacheDimensionHandlerMixin",
+		"HighlightVertexBufferMixin",
+		"MultiColorHighlightVertexBufferMixin",
+		"WindowDataLoadCallbackMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

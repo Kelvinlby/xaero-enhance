@@ -47,6 +47,11 @@ public final class AsyncBuffers {
 	private AsyncBuffers() {
 	}
 
+	/** The shared worker pool, also used for XaeroPlus highlight work. */
+	public static ExecutorService executor() {
+		return POOL;
+	}
+
 	public static boolean isWorker() {
 		return CONTEXT.get() != null;
 	}

@@ -1,6 +1,6 @@
 # Xaero Enhance
 
-Client-side Fabric mod that improves the performance of Xaero's World Map 1.47.2 (Minecraft 1.21.11). It works with XaeroPlus.
+Client-side Fabric mod that improves the performance of Xaero's World Map 1.47.2 (Minecraft 1.21.11). It works with XaeroPlus, and the XaeroPlus optimizations only turn on when XaeroPlus is installed.
 
 ## What it changes
 
@@ -12,6 +12,18 @@ Client-side Fabric mod that improves the performance of Xaero's World Map 1.47.2
 - **The per-frame upload budget always applies.** When the map camera stops moving, Xaero normally drops the budget
   and processes every pending texture in a single frame. That causes the stalls on a zoomed-out map. Because the
   buffers are now built off-thread, the normal budget keeps up.
+
+- **XaeroPlus chunk highlights are built on worker threads, with at most one quad per screen pixel.** NewChunks,
+  OldChunks, Portals and the other highlight layers were rebuilt on the render thread with one quad per chunk, even
+  when many chunks shared a single pixel. They are now built on worker threads. On a zoomed-out world map, chunks
+  that share a pixel are merged into one quad, so the vertex count stays bounded by the screen size. The previous
+  mesh keeps being drawn until the new one is ready.
+- **XaeroPlus no longer scans its highlight cache on the render thread when the map window moves.** A worker finds
+  the entries that fell outside the window. Removing them and saving unsaved entries to the database still happen
+  on the render thread, using XaeroPlus's own logic.
+
+XaeroPlus's highlight data is only read off-thread, never changed there. Mods that read it, through XaeroPlus or
+its database, see the same data as before.
 
 A worker never touches GPU objects or texture buffers. It writes into a private array, and the result is discarded
 if the chunk changed in the meantime. xaerolib's block colour caches are not thread-safe. Workers read concurrent

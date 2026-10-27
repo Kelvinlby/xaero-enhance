@@ -5,10 +5,12 @@
 	"client": [
 		"BlockTextureColorUtilsMixin",
 		"BlockTintProviderMixin",
+		"GuiMapMixin",
 		"LeafRegionTextureMixin",
 		"MapPixelMixin",
 		"MapProcessorMixin",
-		"MapTileChunkMixin"
+		"MapTileChunkMixin",
+		"MinecraftClientMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
