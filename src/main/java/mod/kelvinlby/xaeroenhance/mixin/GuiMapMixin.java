@@ -1,9 +1,15 @@
 package mod.kelvinlby.xaeroenhance.mixin;
 
+import mod.kelvinlby.xaeroenhance.MapScreen;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.Window;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Constant;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.Slice;
 import xaero.map.gui.GuiMap;
@@ -18,6 +24,20 @@ import xaero.map.gui.GuiMap;
 public abstract class GuiMapMixin {
 	@Unique
 	private static final int REGIONS_PER_REQUEST = 4;
+
+	@Shadow
+	private double cameraX;
+	@Shadow
+	private double cameraZ;
+	@Shadow
+	private double scale;
+
+	/** Publishes the visible block area; the camera has settled for this frame by the end of render. */
+	@Inject(method = "render", remap = true, at = @At("RETURN"))
+	private void xaeroEnhance$publishView(CallbackInfo ci) {
+		Window window = MinecraftClient.getInstance().getWindow();
+		MapScreen.setView(cameraX, cameraZ, window.getFramebufferWidth() / 2.0 / scale, window.getFramebufferHeight() / 2.0 / scale);
+	}
 
 	@ModifyConstant(method = "render", remap = true, constant = @Constant(intValue = 2, ordinal = 0),
 			slice = @Slice(from = @At(value = "INVOKE", target = "Lxaero/map/MapProcessor;getAffectingLoadingFrequencyCount()I", remap = false)))

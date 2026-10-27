@@ -2,6 +2,7 @@ package mod.kelvinlby.xaeroenhance.xaeroplus;
 
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import mod.kelvinlby.xaeroenhance.HighlightBufferAccess;
+import mod.kelvinlby.xaeroenhance.MapScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -13,6 +14,9 @@ import xaeroplus.feature.render.highlight.HighlightVertexBuffer;
 public abstract class HighlightVertexBufferMixin {
 	@Inject(method = "refresh", at = @At("HEAD"), cancellable = true)
 	private void xaeroEnhance$refreshAsync(DrawContext ctx, Long2LongMap highlights, int color, CallbackInfo ci) {
+		if (!MapScreen.isOpen() || !ctx.worldmap()) {
+			return; // the minimap keeps XaeroPlus's own refresh
+		}
 		((HighlightBufferAccess) this).xaeroEnhance$refresh(ctx, highlights, color, null);
 		ci.cancel();
 	}

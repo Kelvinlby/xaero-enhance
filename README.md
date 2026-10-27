@@ -22,6 +22,10 @@ Client-side Fabric mod that improves the performance of Xaero's World Map 1.47.2
   the entries that fell outside the window. Removing them and saving unsaved entries to the database still happen
   on the render thread, using XaeroPlus's own logic.
 
+Everything runs only while the world map screen is open. Work for chunks that scroll off screen is cancelled right
+away. Closing the screen cancels all background work, and pending changes to XaeroPlus's cache are applied
+immediately. After that, Xaero and XaeroPlus, including the minimap, run as they do without this mod.
+
 XaeroPlus's highlight data is only read off-thread, never changed there. Mods that read it, through XaeroPlus or
 its database, see the same data as before.
 

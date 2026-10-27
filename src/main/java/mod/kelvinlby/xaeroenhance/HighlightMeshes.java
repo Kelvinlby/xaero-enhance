@@ -16,7 +16,8 @@ import xaeroplus.feature.render.highlight.MultiColorHighlightColorFunction;
 import xaeroplus.util.ChunkUtils;
 
 /**
- * Builds XaeroPlus chunk highlight meshes on worker threads, sampled down to about one quad per screen pixel.
+ * Builds XaeroPlus chunk highlight meshes on worker threads, sampled down to about one quad per screen pixel. Builds
+ * stop and free their memory when the map screen closes.
  */
 public final class HighlightMeshes {
 	private static final VarHandle KEY;
@@ -47,9 +48,10 @@ public final class HighlightMeshes {
 	public static CompletableFuture<Mesh> build(Long2LongMap highlights, boolean flipped, int cellShift,
 			@Nullable MultiColorHighlightColorFunction colorFunction) {
 		Snapshot snapshot = Snapshot.of(highlights);
+		int session = MapScreen.session();
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return sampled(snapshot, flipped, cellShift, colorFunction);
+				return sampled(snapshot, flipped, cellShift, colorFunction, session);
 			} catch (Throwable t) {
 				XaeroEnhance.LOGGER.warn("Failed to build chunk highlight mesh", t);
 				return null;
@@ -62,17 +64,21 @@ public final class HighlightMeshes {
 	 * 2^shift cell shows the chunk at its centre, in that chunk's colour, or nothing. Sparse highlights stay sparse.
 	 * At shift 0 this is exactly XaeroPlus's mesh, one quad per highlighted chunk.
 	 */
-	private static Mesh sampled(Snapshot snapshot, boolean flipped, int shift, @Nullable MultiColorHighlightColorFunction colorFunction) {
+	private static @Nullable Mesh sampled(Snapshot snapshot, boolean flipped, int shift, @Nullable MultiColorHighlightColorFunction colorFunction,
+			int session) {
 		int mask = (1 << shift) - 1;
 		int centre = mask + 1 >> 1;
 		int[] count = new int[1];
-		snapshot.forEach((pos, value) -> {
+		boolean complete = snapshot.forEach(session, (pos, value) -> {
 			if ((ChunkUtils.longToChunkX(pos) & mask) == centre && (ChunkUtils.longToChunkZ(pos) & mask) == centre) {
 				count[0]++;
 			}
 		});
+		if (!complete) {
+			return null;
+		}
 		Mesh mesh = new Mesh(count[0], colorFunction != null);
-		snapshot.forEach((pos, value) -> {
+		complete = snapshot.forEach(session, (pos, value) -> {
 			int x = ChunkUtils.longToChunkX(pos);
 			int z = ChunkUtils.longToChunkZ(pos);
 			if ((x & mask) != centre || (z & mask) != centre) {
@@ -87,13 +93,17 @@ public final class HighlightMeshes {
 			}
 			mesh.quad(x - centre, z - centre, mask + 1, flipped, color);
 		});
+		if (!complete) {
+			mesh.free();
+			return null;
+		}
 		return mesh;
 	}
 
 	/** Worker thread: keys of all entries outside the given chunk bounds. */
 	public static LongArrayList keysOutside(Snapshot snapshot, int minX, int maxX, int minZ, int maxZ) {
 		LongArrayList outside = new LongArrayList();
-		snapshot.forEach((pos, value) -> {
+		snapshot.forEach(-1, (pos, value) -> {
 			int x = ChunkUtils.longToChunkX(pos);
 			int z = ChunkUtils.longToChunkZ(pos);
 			if (x < minX || x > maxX || z < minZ || z > maxZ) {
@@ -121,9 +131,16 @@ public final class HighlightMeshes {
 			return new Snapshot((long[]) KEY.get(open), (long[]) VALUE.get(open), (boolean) CONTAINS_NULL_KEY.get(open));
 		}
 
-		void forEach(EntryConsumer consumer) {
+		/**
+		 * @param session the map screen session to stop at the end of, or -1 to always finish
+		 * @return false if stopped early
+		 */
+		boolean forEach(int session, EntryConsumer consumer) {
 			int n = Math.min(keys.length, values.length) - 1;
 			for (int i = 0; i < n; i++) {
+				if ((i & 0xFFFF) == 0 && session != -1 && MapScreen.session() != session) {
+					return false;
+				}
 				long key = keys[i];
 				if (key != 0) {
 					consumer.accept(key, values[i]);
@@ -132,6 +149,7 @@ public final class HighlightMeshes {
 			if (containsNullKey) {
 				consumer.accept(0, values[n]);
 			}
+			return true;
 		}
 	}
 
