@@ -17,10 +17,42 @@ A worker never touches GPU objects or texture buffers. It writes into a private 
 if the chunk changed in the meantime. xaerolib's block colour caches are not thread-safe. Workers read concurrent
 copies of them, and any missing entries are filled on the render thread.
 
+## Installing
+
+Requirements:
+
+- Minecraft 1.21.11 with Fabric Loader 0.20.1 or newer
+- Xaero's World Map 1.47.2 (exactly this version, because the mixins target its internals)
+- Java 21 or newer
+- XaeroPlus is optional
+
+Steps:
+
+1. Download the latest build. Open the [Actions tab](https://github.com/Kelvinlby/xaero-enhance/actions/workflows/build.yml),
+   select the most recent successful run and download the `xaero-enhance-<commit>` artifact. You need to be signed in to
+   GitHub to download artifacts. Only the 3 most recent builds are kept.
+2. Unzip it. It contains `xaero-enhance-<commit>.jar`.
+3. Put the jar in your `.minecraft/mods` folder, next to Xaero's World Map.
+
+The mod is client-side only. Servers don't need it.
+
 ## Building
 
-Put these jars in `libs/`, then run `./gradlew build`:
+You need JDK 21 or newer. The Xaero jars the build depends on are already included in `libs/`.
 
-- `xaeroworldmap-fabric-1.21.11-1.47.2.jar`
-- `xaerolib-fabric-1.21.11-1.8.5.jar` (nested inside the world map jar under `META-INF/jars/`)
-- `XaeroPlus-2.37.2+fabric-1.21.11-WM1.47.2-MM26.6.2.jar` (only needed for `runClient`)
+```sh
+git clone https://github.com/Kelvinlby/xaero-enhance.git
+cd xaero-enhance
+./gradlew build
+```
+
+The mod jar is written to `build/libs/xaero-enhance-<version>.jar`. The version comes from `version` in
+`gradle.properties`. You can override it with `-Pversion=...`, which is how CI stamps builds with the commit hash:
+
+```sh
+./gradlew build -Pversion=$(git rev-parse --short HEAD)
+```
+
+To start a development client with Xaero's World Map and XaeroPlus loaded, run `./gradlew runClient`.
+
+Every pushed commit is built by GitHub Actions (`.github/workflows/build.yml`).

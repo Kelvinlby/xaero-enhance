@@ -20,9 +20,10 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-	// Xaero's World Map (and its bundled xaerolib) to compile against; XaeroPlus only for dev runs.
+	// Xaero's World Map (and its bundled xaerolib) to compile against; Minimap and XaeroPlus only for dev runs.
 	modCompileOnly files("libs/xaeroworldmap-fabric-1.21.11-1.47.2.jar", "libs/xaerolib-fabric-1.21.11-1.8.5.jar")
-	modLocalRuntime files("libs/xaeroworldmap-fabric-1.21.11-1.47.2.jar", "libs/XaeroPlus-2.37.2+fabric-1.21.11-WM1.47.2-MM26.6.2.jar")
+	modLocalRuntime files("libs/xaeroworldmap-fabric-1.21.11-1.47.2.jar", "libs/xaerolib-fabric-1.21.11-1.8.5.jar", "libs/xaerominimap-fabric-1.21.11-26.6.2.jar",
+		"libs/XaeroPlus-2.37.2+fabric-1.21.11-WM1.47.2-MM26.6.2.jar")
 }
 
 processResources {
