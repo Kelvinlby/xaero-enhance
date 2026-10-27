@@ -38,7 +38,3 @@ hs_err_*.log
 replay_*.log
 *.hprof
 *.jfr
-
-# third-party mod jars (not redistributable)
-
-libs/*.jar

@@ -224,7 +224,7 @@ public final class AsyncBuffers {
 		final MapProcessor mapProcessor;
 		final MapUpdateFastConfig config;
 		final int generation;
-		final int[] pixels = new int[64 * 64];
+		int[] pixels;
 		int tileMask;
 		boolean hasLight;
 		boolean failed;
@@ -243,6 +243,7 @@ public final class AsyncBuffers {
 			// Keeps MapWriter off this region's tiles while they are being read.
 			region.pushWriterPause();
 			try {
+				pixels = new int[64 * 64];
 				build(this, CONTEXT.get());
 			} catch (Throwable t) {
 				failed = true;

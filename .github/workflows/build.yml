@@ -1,30 +1,61 @@
-# Automatically build the project and run any configured tests for every push
-# and submitted pull request. This can help catch issues that only occur on
-# certain platforms or Java versions, and provides a first line of defence
-# against bad commits.
+# Build the mod jar for every pushed commit, versioned with the commit's short
+# hash, and keep only the artifacts of the 3 most recent builds.
 
 name: build
-on: [pull_request, push]
+on: [push, workflow_dispatch]
+
+permissions:
+  contents: read
+  actions: write # to delete old build artifacts
 
 jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: validate gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
       - name: setup jdk
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: '25'
           distribution: 'microsoft'
-      - name: make gradle wrapper executable
-        run: chmod +x ./gradlew
+      - name: setup gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: get short commit hash
+        id: version
+        run: echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
       - name: build
-        run: ./gradlew build
-      - name: capture build artifacts
+        run: |
+          chmod +x ./gradlew
+          ./gradlew build -Pversion=${{ steps.version.outputs.sha }}
+      - name: upload mod jar
         uses: actions/upload-artifact@v7
         with:
-          name: Artifacts
-          path: build/libs/
+          name: xaero-enhance-${{ steps.version.outputs.sha }}
+          path: |
+            build/libs/*.jar
+            !build/libs/*-sources.jar
+          if-no-files-found: error
+      - name: delete all but the latest 3 build artifacts
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const artifacts = await github.paginate(github.rest.actions.listArtifactsForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+            });
+            const old = artifacts
+              .filter(a => a.name.startsWith('xaero-enhance-') && !a.expired)
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .slice(3);
+            for (const a of old) {
+              core.info(`Deleting ${a.name} (${a.created_at})`);
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: a.id,
+              });
+            }

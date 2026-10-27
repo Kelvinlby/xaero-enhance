@@ -2,8 +2,13 @@
 	"required": true,
 	"package": "mod.kelvinlby.xaeroenhance.mixin",
 	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"ExampleMixin"
+	"client": [
+		"BlockTextureColorUtilsMixin",
+		"BlockTintProviderMixin",
+		"LeafRegionTextureMixin",
+		"MapPixelMixin",
+		"MapProcessorMixin",
+		"MapTileChunkMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -2,23 +2,14 @@
 	"schemaVersion": 1,
 	"id": "xaero-enhance",
 	"version": "${version}",
-	"name": "xaero-enhance",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Xaero Enhance",
+	"description": "Performance enhancement for Xaero's World Map: builds map chunk textures in parallel off the render thread.",
 	"authors": [
-		"Me!"
+		"kelvinlby"
 	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
 	"license": "CC0-1.0",
 	"icon": "assets/xaero-enhance/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"mod.kelvinlby.xaeroenhance.XaeroEnhance"
-		]
-	},
+	"environment": "client",
 	"mixins": [
 		"xaero-enhance.mixins.json"
 	],
@@ -26,6 +17,6 @@
 		"fabricloader": ">=0.20.1",
 		"minecraft": "~1.21.11",
 		"java": ">=21",
-		"fabric-api": "*"
+		"xaeroworldmap": "1.47.2"
 	}
 }
