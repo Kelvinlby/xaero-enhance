@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 import mod.kelvinlby.xaeroenhance.AsyncBuffers;
 import mod.kelvinlby.xaeroenhance.FrameWork;
 import mod.kelvinlby.xaeroenhance.HighlightMeshes;
+import mod.kelvinlby.xaeroenhance.MapScreen;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
@@ -28,7 +29,8 @@ import xaeroplus.util.ChunkUtils;
  * When the map window moves, XaeroPlus scans every cached highlight on the render thread and removes the ones now
  * outside it, all in one frame. The scan runs on a worker instead, and the removals, which must stay on the render
  * thread, are spread over frames. Each removal and the database write of unsaved entries use exactly the original
- * logic, and the returned future still gates the next window move.
+ * logic, and the returned future still gates the next window move. Only while the map screen is open; closing it
+ * finishes the queued removals.
  */
 @Mixin(value = ChunkHighlightCacheDimensionHandler.class, remap = false)
 public abstract class ChunkHighlightCacheDimensionHandlerMixin {
@@ -45,8 +47,8 @@ public abstract class ChunkHighlightCacheDimensionHandlerMixin {
 	@Inject(method = "flushChunksOutsideWindow", at = @At("HEAD"), cancellable = true)
 	private void xaeroEnhance$scanOffThread(int windowRegionX, int windowRegionZ, int windowRegionSize, CallbackInfoReturnable<ListenableFuture<?>> cir) {
 		ChunkHighlightCacheDimensionHandler self = (ChunkHighlightCacheDimensionHandler) (Object) this;
-		if (!self.mc.isOnThread()) {
-			return; // let XaeroPlus raise its own error
+		if (!self.mc.isOnThread() || !MapScreen.isOpen()) {
+			return; // XaeroPlus's own path, including its wrong-thread error
 		}
 		int minX = ChunkUtils.regionCoordToChunkCoord(windowRegionX - windowRegionSize);
 		int maxX = ChunkUtils.regionCoordToChunkCoord(windowRegionX + windowRegionSize);

@@ -2,6 +2,7 @@ package mod.kelvinlby.xaeroenhance;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,6 +39,7 @@ public final class AsyncBuffers {
 	private static final int THREADS = Math.max(1, Math.min(6, Runtime.getRuntime().availableProcessors() / 2));
 	private static final ExecutorService POOL = Executors.newFixedThreadPool(THREADS, new ThreadFactory());
 	private static final ThreadLocal<WorkerContext> CONTEXT = new ThreadLocal<>();
+	private static final Set<Job> LIVE = ConcurrentHashMap.newKeySet();
 
 	// xaerolib's colour caches are not thread-safe, so workers read these copies and fill misses on the render thread.
 	private static final Map<BlockState, Integer> TEXTURE_COLORS = new ConcurrentHashMap<>();
@@ -65,6 +67,22 @@ public final class AsyncBuffers {
 	public static boolean handle(MapTileChunk chunk, MapProcessor mapProcessor, boolean commit) {
 		AsyncTileChunk async = (AsyncTileChunk) chunk;
 		Job job = async.xaeroEnhance$job();
+		if (!MapScreen.isOpen()) {
+			// Only the map screen uses workers; otherwise (the minimap) Xaero builds buffers itself.
+			if (job != null) {
+				job.cancelled = true;
+				async.xaeroEnhance$setJob(null);
+			}
+			return false;
+		}
+		if (!MapScreen.isVisible(chunk.getX() << 6, chunk.getZ() << 6, 64)) {
+			// Off screen: drop any queued or running build and leave the chunk flagged until it is visible again.
+			if (job != null) {
+				job.cancelled = true;
+				async.xaeroEnhance$setJob(null);
+			}
+			return true;
+		}
 		if (job == null) {
 			if (async.xaeroEnhance$syncFallback()) {
 				async.xaeroEnhance$setSyncFallback(!commit);
@@ -77,6 +95,7 @@ public final class AsyncBuffers {
 			}
 			job = new Job(chunk, mapProcessor, new MapUpdateFastConfig(mapProcessor), async.xaeroEnhance$generation());
 			async.xaeroEnhance$setJob(job);
+			LIVE.add(job);
 			POOL.execute(job);
 			return true;
 		}
@@ -84,13 +103,22 @@ public final class AsyncBuffers {
 			return true;
 		}
 		async.xaeroEnhance$setJob(null);
-		if (job.failed) {
+		if (job.cancelled) {
+			return true; // partial; the chunk is still flagged and gets a new job
+		} else if (job.failed) {
 			async.xaeroEnhance$setSyncFallback(true);
 		} else if (job.generation == async.xaeroEnhance$generation() && chunk.getToUpdateBuffers()) {
 			commit(chunk, job);
 		}
 		// Otherwise the chunk changed meanwhile and is still flagged for an update, so it gets resubmitted.
 		return true;
+	}
+
+	/** Cancels every queued and running build; their chunks fall back to Xaero's own path. */
+	static void cancelAll() {
+		for (Job job : LIVE) {
+			job.cancelled = true;
+		}
 	}
 
 	/** Mirrors the bookkeeping of {@code MapTileChunk.updateBuffers}, with the pixels already computed. */
@@ -154,8 +182,8 @@ public final class AsyncBuffers {
 
 		for (int o = 0; o < 4; o++) {
 			for (int p = 0; p < 4; p++) {
-				if (async.xaeroEnhance$generation() != job.generation) {
-					return; // stale and discarded on commit; avoid touching tiles that may already be recycled
+				if (job.cancelled || async.xaeroEnhance$generation() != job.generation) {
+					return; // discarded; avoid touching tiles that may already be recycled
 				}
 				MapTile tile = chunk.getTile(o, p);
 				if (tile == null || !tile.isLoaded()) {
@@ -233,6 +261,7 @@ public final class AsyncBuffers {
 		int tileMask;
 		boolean hasLight;
 		boolean failed;
+		volatile boolean cancelled;
 		volatile boolean done;
 
 		Job(MapTileChunk chunk, MapProcessor mapProcessor, MapUpdateFastConfig config, int generation) {
@@ -244,6 +273,11 @@ public final class AsyncBuffers {
 
 		@Override
 		public void run() {
+			if (cancelled) {
+				LIVE.remove(this);
+				done = true;
+				return;
+			}
 			MapRegion region = chunk.getInRegion();
 			// Keeps MapWriter off this region's tiles while they are being read.
 			region.pushWriterPause();
@@ -255,6 +289,7 @@ public final class AsyncBuffers {
 				XaeroEnhance.LOGGER.debug("Async buffer build failed for chunk {}", chunk, t);
 			} finally {
 				region.popWriterPause();
+				LIVE.remove(this);
 				done = true;
 			}
 		}

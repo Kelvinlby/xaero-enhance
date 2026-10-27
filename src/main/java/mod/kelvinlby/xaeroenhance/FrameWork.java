@@ -4,7 +4,7 @@ import java.util.ArrayDeque;
 
 /**
  * Render-thread work that must stay on the render thread but is too large for one frame. Steps run in submission
- * order within a small time budget per frame.
+ * order within a small time budget per frame while the map screen is open. Once it closes, they run to completion.
  */
 public final class FrameWork {
 	private static final long BUDGET_NANOS = 2_000_000L;
@@ -22,23 +22,35 @@ public final class FrameWork {
 	/** Render thread only. */
 	public static void submit(Step step) {
 		QUEUE.add(step);
+		if (!MapScreen.isOpen()) {
+			drain();
+		}
+	}
+
+	/** Render thread: finishes every queued step now. */
+	public static void drain() {
+		while (!QUEUE.isEmpty()) {
+			run(QUEUE.peek(), Long.MAX_VALUE);
+			QUEUE.poll();
+		}
 	}
 
 	/** Render thread, once per frame. */
 	public static void runFrame() {
 		long deadline = System.nanoTime() + BUDGET_NANOS;
 		while (!QUEUE.isEmpty() && System.nanoTime() < deadline) {
-			Step step = QUEUE.peek();
-			boolean done;
-			try {
-				done = step.run(deadline);
-			} catch (Throwable t) {
-				XaeroEnhance.LOGGER.error("Deferred render thread work failed", t);
-				done = true;
-			}
-			if (done) {
+			if (run(QUEUE.peek(), deadline)) {
 				QUEUE.poll();
 			}
+		}
+	}
+
+	private static boolean run(Step step, long deadline) {
+		try {
+			return step.run(deadline);
+		} catch (Throwable t) {
+			XaeroEnhance.LOGGER.error("Deferred render thread work failed", t);
+			return true;
 		}
 	}
 

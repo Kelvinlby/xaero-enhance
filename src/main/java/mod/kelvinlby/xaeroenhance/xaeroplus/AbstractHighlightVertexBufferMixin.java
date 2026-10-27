@@ -7,6 +7,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import mod.kelvinlby.xaeroenhance.HighlightBufferAccess;
 import mod.kelvinlby.xaeroenhance.HighlightMeshes;
+import mod.kelvinlby.xaeroenhance.MapScreen;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,8 +21,9 @@ import xaeroplus.feature.render.highlight.AbstractHighlightVertexBuffer;
 import xaeroplus.feature.render.highlight.MultiColorHighlightColorFunction;
 
 /**
- * Chunk highlight meshes are built on worker threads and uploaded on the render thread once ready; the previous
- * mesh keeps being drawn meanwhile. On the world map they are built at one quad per screen pixel at most.
+ * While the map screen is open, its chunk highlight meshes are built on worker threads and uploaded on the render
+ * thread once ready; the previous mesh keeps being drawn meanwhile. They are sampled down to about one quad per screen
+ * pixel. The minimap, and everything after the map screen closes, use XaeroPlus's own refresh.
  */
 @Mixin(value = AbstractHighlightVertexBuffer.class, remap = false)
 public abstract class AbstractHighlightVertexBufferMixin implements HighlightBufferAccess {
@@ -67,6 +69,10 @@ public abstract class AbstractHighlightVertexBufferMixin implements HighlightBuf
 	@Inject(method = "preRender", at = @At("HEAD"))
 	private void xaeroEnhance$upload(DrawContext ctx, Long2LongMap highlights, int color, CallbackInfo ci) {
 		CompletableFuture<HighlightMeshes.Mesh> pending = xaeroEnhance$pending;
+		if (pending != null && (!MapScreen.isOpen() || !ctx.worldmap())) {
+			xaeroEnhance$dropPending(null); // map screen closed: the build is cancelled and frees itself
+			return;
+		}
 		if (pending == null || !pending.isDone()) {
 			return;
 		}
@@ -92,7 +98,7 @@ public abstract class AbstractHighlightVertexBufferMixin implements HighlightBuf
 
 	@Inject(method = "needsRefresh", at = @At("RETURN"), cancellable = true)
 	private void xaeroEnhance$refreshOnZoom(DrawContext ctx, CallbackInfoReturnable<Boolean> cir) {
-		if (!cir.getReturnValueZ() && xaeroEnhance$cellShift(ctx) != xaeroEnhance$cellShift) {
+		if (!cir.getReturnValueZ() && MapScreen.isOpen() && xaeroEnhance$cellShift(ctx) != xaeroEnhance$cellShift) {
 			cir.setReturnValue(true);
 		}
 	}
