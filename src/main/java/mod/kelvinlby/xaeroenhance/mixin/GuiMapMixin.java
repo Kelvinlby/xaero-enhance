@@ -1,8 +1,8 @@
 package mod.kelvinlby.xaeroenhance.mixin;
 
+import com.mojang.blaze3d.platform.Window;
 import mod.kelvinlby.xaeroenhance.MapScreen;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.Window;
+import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -20,7 +20,7 @@ import xaero.map.gui.GuiMap;
  * long before the next frame, so the screen fills in at about one region per frame. Requesting a few more per round
  * keeps it busy; Xaero's own cap on regions in flight still applies.
  */
-@Mixin(value = GuiMap.class, remap = false)
+@Mixin(GuiMap.class)
 public abstract class GuiMapMixin {
 	@Unique
 	private static final int REGIONS_PER_REQUEST = 4;
@@ -32,22 +32,22 @@ public abstract class GuiMapMixin {
 	@Shadow
 	private double scale;
 
-	/** Publishes the visible block area; the camera has settled for this frame by the end of render. */
-	@Inject(method = "render", remap = true, at = @At("RETURN"))
+	/** Publishes the visible block area; the camera has settled for this frame by the end of extractRenderState. */
+	@Inject(method = "extractRenderState", at = @At("RETURN"))
 	private void xaeroEnhance$publishView(CallbackInfo ci) {
-		Window window = MinecraftClient.getInstance().getWindow();
-		MapScreen.setView(cameraX, cameraZ, window.getFramebufferWidth() / 2.0 / scale, window.getFramebufferHeight() / 2.0 / scale);
+		Window window = Minecraft.getInstance().getWindow();
+		MapScreen.setView(cameraX, cameraZ, window.getWidth() / 2.0 / scale, window.getHeight() / 2.0 / scale);
 	}
 
-	@ModifyConstant(method = "render", remap = true, constant = @Constant(intValue = 2, ordinal = 0),
-			slice = @Slice(from = @At(value = "INVOKE", target = "Lxaero/map/MapProcessor;getAffectingLoadingFrequencyCount()I", remap = false)))
+	@ModifyConstant(method = "extractRenderState", constant = @Constant(intValue = 2, ordinal = 0),
+			slice = @Slice(from = @At(value = "INVOKE", target = "Lxaero/map/MapProcessor;getAffectingLoadingFrequencyCount()I")))
 	private int xaeroEnhance$branchRequests(int original) {
 		return REGIONS_PER_REQUEST;
 	}
 
-	@ModifyConstant(method = "render", remap = true, constant = @Constant(intValue = 1, ordinal = 0),
+	@ModifyConstant(method = "extractRenderState", constant = @Constant(intValue = 1, ordinal = 0),
 			slice = @Slice(from = @At(value = "INVOKE",
-					target = "Lxaero/map/file/MapSaveLoad;requestBranchCache(Lxaero/map/region/BranchLeveledRegion;Ljava/lang/String;)V", remap = false)))
+					target = "Lxaero/map/file/MapSaveLoad;requestBranchCache(Lxaero/map/region/BranchLeveledRegion;Ljava/lang/String;)V")))
 	private int xaeroEnhance$leafRequests(int original) {
 		return REGIONS_PER_REQUEST;
 	}

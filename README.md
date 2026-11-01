@@ -1,6 +1,6 @@
 # Xaero Enhance
 
-Client-side Fabric mod that improves the performance of Xaero's World Map 1.47.2 (Minecraft 1.21.11). It works with XaeroPlus, and the XaeroPlus optimizations only turn on when XaeroPlus is installed.
+Client-side Fabric mod that improves the performance of Xaero's World Map 1.47.2 (Minecraft 26.3). It works with XaeroPlus, and the XaeroPlus optimizations only turn on when XaeroPlus is installed.
 
 ## What it changes
 
@@ -37,9 +37,9 @@ copies of them, and any missing entries are filled on the render thread.
 
 Requirements:
 
-- Minecraft 1.21.11 with Fabric Loader 0.20.1 or newer
+- Minecraft 26.3 with Fabric Loader 0.20.1 or newer
 - Xaero's World Map 1.47.2 (exactly this version, because the mixins target its internals)
-- Java 21 or newer
+- Java 25 or newer
 - XaeroPlus is optional
 
 Steps:

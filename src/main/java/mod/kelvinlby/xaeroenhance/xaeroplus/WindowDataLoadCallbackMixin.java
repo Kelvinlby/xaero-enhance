@@ -20,7 +20,7 @@ import xaeroplus.feature.highlights.ChunkHighlightCacheDimensionHandler;
  * after growing the map once up front like {@code putAll} does. Only while the map screen is open; closing it
  * finishes the queued insertions.
  */
-@Mixin(targets = "xaeroplus.feature.highlights.ChunkHighlightCacheDimensionHandler$WindowDataLoadFutureCallback", remap = false)
+@Mixin(targets = "xaeroplus.feature.highlights.ChunkHighlightCacheDimensionHandler$WindowDataLoadFutureCallback")
 public abstract class WindowDataLoadCallbackMixin {
 	@Shadow
 	@Final
@@ -28,7 +28,7 @@ public abstract class WindowDataLoadCallbackMixin {
 
 	@Inject(method = "onSuccess(Lit/unimi/dsi/fastutil/longs/Long2LongMap;)V", at = @At("HEAD"), cancellable = true)
 	private void xaeroEnhance$insertOverFrames(Long2LongMap dataBuf, CallbackInfo ci) {
-		if (dataBuf.isEmpty() || !this$0.mc.isOnThread() || !MapScreen.isOpen()) {
+		if (dataBuf.isEmpty() || !this$0.mc.isSameThread() || !MapScreen.isOpen()) {
 			return; // XaeroPlus's own path, including its wrong-thread report
 		}
 		ci.cancel();

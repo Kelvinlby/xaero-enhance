@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xaeroplus.feature.render.DrawContext;
 import xaeroplus.feature.render.highlight.HighlightVertexBuffer;
 
-@Mixin(value = HighlightVertexBuffer.class, remap = false)
+@Mixin(HighlightVertexBuffer.class)
 public abstract class HighlightVertexBufferMixin {
 	@Inject(method = "refresh", at = @At("HEAD"), cancellable = true)
 	private void xaeroEnhance$refreshAsync(DrawContext ctx, Long2LongMap highlights, int color, CallbackInfo ci) {

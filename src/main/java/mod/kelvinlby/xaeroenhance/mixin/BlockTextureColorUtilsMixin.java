@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xaero.lib.client.level.block.BlockTextureColorUtils;
 
-@Mixin(value = BlockTextureColorUtils.class, remap = false)
+@Mixin(BlockTextureColorUtils.class)
 public abstract class BlockTextureColorUtilsMixin {
 	@Inject(method = "requestCachedColoursClear", at = @At("HEAD"))
 	private void xaeroEnhance$clearWorkerCaches(CallbackInfo ci) {

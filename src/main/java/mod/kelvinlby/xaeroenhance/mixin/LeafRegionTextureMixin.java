@@ -20,7 +20,7 @@ import xaero.map.region.texture.LeafRegionTexture;
  * within the frame's upload budget, postUpload for every loaded texture, so jobs get submitted even when the
  * budget is spent.
  */
-@Mixin(value = LeafRegionTexture.class, remap = false)
+@Mixin(LeafRegionTexture.class)
 public abstract class LeafRegionTextureMixin {
 	@Shadow
 	private MapTileChunk tileChunk;

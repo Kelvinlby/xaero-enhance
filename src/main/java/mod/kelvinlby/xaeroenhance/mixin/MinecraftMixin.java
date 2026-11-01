@@ -2,18 +2,18 @@ package mod.kelvinlby.xaeroenhance.mixin;
 
 import mod.kelvinlby.xaeroenhance.FrameWork;
 import mod.kelvinlby.xaeroenhance.MapScreen;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xaero.map.gui.GuiMap;
 
-@Mixin(MinecraftClient.class)
-public abstract class MinecraftClientMixin {
-	@Inject(method = "render", at = @At("HEAD"))
+@Mixin(Minecraft.class)
+public abstract class MinecraftMixin {
+	@Inject(method = "runTick", at = @At("HEAD"))
 	private void xaeroEnhance$runFrameWork(boolean tick, CallbackInfo ci) {
-		MapScreen.update(((MinecraftClient) (Object) this).currentScreen instanceof GuiMap);
+		MapScreen.update(((Minecraft) (Object) this).gui.screen() instanceof GuiMap);
 		FrameWork.runFrame();
 	}
 }

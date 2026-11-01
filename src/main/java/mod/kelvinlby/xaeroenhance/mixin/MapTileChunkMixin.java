@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xaero.map.region.MapTileChunk;
 
-@Mixin(value = MapTileChunk.class, remap = false)
+@Mixin(MapTileChunk.class)
 public abstract class MapTileChunkMixin implements AsyncTileChunk {
 	@Unique
 	private volatile int xaeroEnhance$generation;
