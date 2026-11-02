@@ -13,7 +13,7 @@ import xaeroplus.feature.render.DrawContext;
 import xaeroplus.feature.render.highlight.MultiColorHighlightColorFunction;
 import xaeroplus.feature.render.highlight.MultiColorHighlightVertexBuffer;
 
-@Mixin(value = MultiColorHighlightVertexBuffer.class, remap = false)
+@Mixin(MultiColorHighlightVertexBuffer.class)
 public abstract class MultiColorHighlightVertexBufferMixin {
 	@Shadow
 	@Final

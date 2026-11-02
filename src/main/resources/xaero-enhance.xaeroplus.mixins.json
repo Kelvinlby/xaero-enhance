@@ -2,7 +2,7 @@
 	"required": true,
 	"package": "mod.kelvinlby.xaeroenhance.xaeroplus",
 	"plugin": "mod.kelvinlby.xaeroenhance.XaeroPlusMixinPlugin",
-	"compatibilityLevel": "JAVA_21",
+	"compatibilityLevel": "JAVA_25",
 	"client": [
 		"AbstractHighlightVertexBufferMixin",
 		"ChunkHighlightCacheDimensionHandlerMixin",

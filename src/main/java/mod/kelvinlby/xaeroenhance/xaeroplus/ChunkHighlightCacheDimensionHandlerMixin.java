@@ -12,8 +12,8 @@ import mod.kelvinlby.xaeroenhance.AsyncBuffers;
 import mod.kelvinlby.xaeroenhance.FrameWork;
 import mod.kelvinlby.xaeroenhance.HighlightMeshes;
 import mod.kelvinlby.xaeroenhance.MapScreen;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.world.World;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,7 +32,7 @@ import xaeroplus.util.ChunkUtils;
  * logic, and the returned future still gates the next window move. Only while the map screen is open; closing it
  * finishes the queued removals.
  */
-@Mixin(value = ChunkHighlightCacheDimensionHandler.class, remap = false)
+@Mixin(ChunkHighlightCacheDimensionHandler.class)
 public abstract class ChunkHighlightCacheDimensionHandlerMixin {
 	@Shadow
 	@Final
@@ -42,12 +42,12 @@ public abstract class ChunkHighlightCacheDimensionHandlerMixin {
 	private ListeningExecutorService dbExecutor;
 	@Shadow
 	@Final
-	private RegistryKey<World> dimension;
+	private ResourceKey<Level> dimension;
 
 	@Inject(method = "flushChunksOutsideWindow", at = @At("HEAD"), cancellable = true)
 	private void xaeroEnhance$scanOffThread(int windowRegionX, int windowRegionZ, int windowRegionSize, CallbackInfoReturnable<ListenableFuture<?>> cir) {
 		ChunkHighlightCacheDimensionHandler self = (ChunkHighlightCacheDimensionHandler) (Object) this;
-		if (!self.mc.isOnThread() || !MapScreen.isOpen()) {
+		if (!self.mc.isSameThread() || !MapScreen.isOpen()) {
 			return; // XaeroPlus's own path, including its wrong-thread error
 		}
 		int minX = ChunkUtils.regionCoordToChunkCoord(windowRegionX - windowRegionSize);

@@ -7,7 +7,7 @@
 	"authors": [
 		"kelvinlby"
 	],
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/xaero-enhance/icon.png",
 	"environment": "client",
 	"mixins": [
@@ -15,9 +15,9 @@
 		"xaero-enhance.xaeroplus.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.19.0",
-		"minecraft": "~1.21.11",
-		"java": ">=21",
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~26.3",
+		"java": ">=25",
 		"xaeroworldmap": "1.47.2"
 	}
 }

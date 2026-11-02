@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import xaero.map.MapProcessor;
 import xaero.map.gui.GuiMap;
 
-@Mixin(value = MapProcessor.class, remap = false)
+@Mixin(MapProcessor.class)
 public abstract class MapProcessorMixin {
 	/**
 	 * While the map camera is still, Xaero drops the per-frame upload budget and processes every pending texture

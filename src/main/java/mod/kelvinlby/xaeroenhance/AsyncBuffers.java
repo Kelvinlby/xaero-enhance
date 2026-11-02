@@ -10,14 +10,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntSupplier;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.Registry;
+import net.minecraft.core.BlockPos;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.dimension.DimensionType;
 import xaero.lib.client.level.block.BlockTextureColorUtils;
 import xaero.lib.platform.ClientOnlyServices;
 import xaero.map.MapProcessor;
@@ -158,7 +158,7 @@ public final class AsyncBuffers {
 		MapProcessor mapProcessor = job.mapProcessor;
 		MapUpdateFastConfig config = job.config;
 		MapRegion region = chunk.getInRegion();
-		World world = mapProcessor.getWorld();
+		ClientLevel world = mapProcessor.getWorld();
 		if (world == null) {
 			throw new IllegalStateException("No world");
 		}
@@ -246,7 +246,7 @@ public final class AsyncBuffers {
 
 	private static int onRenderThread(IntSupplier task) {
 		try {
-			return MinecraftClient.getInstance().submit(task::getAsInt).get(10, TimeUnit.SECONDS);
+			return Minecraft.getInstance().submit(task::getAsInt).get(10, TimeUnit.SECONDS);
 		} catch (Exception e) {
 			throw new IllegalStateException("Render thread colour lookup failed", e);
 		}
@@ -297,7 +297,7 @@ public final class AsyncBuffers {
 
 	private static final class WorkerContext {
 		final int[] result = new int[4];
-		final BlockPos.Mutable pos = new BlockPos.Mutable();
+		final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 		final BiomeColorCalculator calculator = new BiomeColorCalculator();
 		BlockTintProvider source;
 		BlockTintProvider tintProvider;

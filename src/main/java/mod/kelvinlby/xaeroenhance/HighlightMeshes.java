@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
-import net.minecraft.util.math.ColorHelper;
+import net.minecraft.util.ARGB;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.MemoryUtil;
 import xaeroplus.feature.render.highlight.MultiColorHighlightColorFunction;
@@ -175,7 +175,7 @@ public final class HighlightMeshes {
 			float x2 = x + size;
 			float y1 = flipped ? z + size : z;
 			float y2 = flipped ? z : z + size;
-			int abgr = ColorHelper.toAbgr(argb);
+			int abgr = ARGB.toABGR(argb);
 			vertex(x1, y2, abgr);
 			vertex(x2, y2, abgr);
 			vertex(x2, y1, abgr);

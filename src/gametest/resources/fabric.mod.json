@@ -1,0 +1,16 @@
+{
+	"schemaVersion": 1,
+	"id": "xaero-enhance-gametest",
+	"version": "${version}",
+	"name": "Xaero Enhance Game Test",
+	"environment": "client",
+	"entrypoints": {
+		"fabric-client-gametest": [
+			"mod.kelvinlby.xaeroenhance.gametest.MapStressGameTest"
+		]
+	},
+	"depends": {
+		"xaero-enhance": "*",
+		"fabric-client-gametest-api-v1": "*"
+	}
+}

@@ -2,7 +2,7 @@ package mod.kelvinlby.xaeroenhance.xaeroplus;
 
 import java.util.concurrent.CompletableFuture;
 
-import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import mod.kelvinlby.xaeroenhance.HighlightBufferAccess;
@@ -25,7 +25,7 @@ import xaeroplus.feature.render.highlight.MultiColorHighlightColorFunction;
  * thread once ready; the previous mesh keeps being drawn meanwhile. They are sampled down to about one quad per screen
  * pixel. The minimap, and everything after the map screen closes, use XaeroPlus's own refresh.
  */
-@Mixin(value = AbstractHighlightVertexBuffer.class, remap = false)
+@Mixin(AbstractHighlightVertexBuffer.class)
 public abstract class AbstractHighlightVertexBufferMixin implements HighlightBufferAccess {
 	@Shadow
 	protected boolean stale;
