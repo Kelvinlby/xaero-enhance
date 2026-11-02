@@ -5,9 +5,10 @@ import java.util.ArrayDeque;
 /**
  * Render-thread work that must stay on the render thread but is too large for one frame. Steps run in submission
  * order within a small time budget per frame while the map screen is open. Once it closes, they run to completion.
+ * The budget is kept small on purpose: the map can take a little longer to fill in, but frames stay smooth.
  */
 public final class FrameWork {
-	private static final long BUDGET_NANOS = 2_000_000L;
+	private static final long BUDGET_NANOS = 500_000L;
 	private static final ArrayDeque<Step> QUEUE = new ArrayDeque<>();
 
 	private FrameWork() {
@@ -54,8 +55,8 @@ public final class FrameWork {
 		}
 	}
 
-	/** True every 256 items once the deadline has passed. */
+	/** True every 32 items once the deadline has passed. */
 	public static boolean outOfTime(int item, long deadline) {
-		return (item & 255) == 0 && System.nanoTime() >= deadline;
+		return (item & 31) == 0 && System.nanoTime() >= deadline;
 	}
 }

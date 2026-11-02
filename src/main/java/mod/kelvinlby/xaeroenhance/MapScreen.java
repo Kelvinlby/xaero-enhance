@@ -34,6 +34,7 @@ public final class MapScreen {
 			session++;
 			AsyncBuffers.cancelAll();
 			FrameWork.drain();
+			RegionIndex.reset();
 		}
 	}
 
