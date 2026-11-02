@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import mod.kelvinlby.xaeroenhance.AsyncBuffers;
 import mod.kelvinlby.xaeroenhance.FrameWork;
+import mod.kelvinlby.xaeroenhance.HighlightCacheAccess;
 import mod.kelvinlby.xaeroenhance.HighlightMeshes;
 import mod.kelvinlby.xaeroenhance.MapScreen;
 import net.minecraft.resources.ResourceKey;
@@ -33,7 +34,7 @@ import xaeroplus.util.ChunkUtils;
  * finishes the queued removals.
  */
 @Mixin(ChunkHighlightCacheDimensionHandler.class)
-public abstract class ChunkHighlightCacheDimensionHandlerMixin {
+public abstract class ChunkHighlightCacheDimensionHandlerMixin implements HighlightCacheAccess {
 	@Shadow
 	@Final
 	private ChunkHighlightDatabase database;
@@ -43,6 +44,11 @@ public abstract class ChunkHighlightCacheDimensionHandlerMixin {
 	@Shadow
 	@Final
 	private ResourceKey<Level> dimension;
+
+	@Override
+	public ResourceKey<Level> xaeroEnhance$dimension() {
+		return dimension;
+	}
 
 	@Inject(method = "flushChunksOutsideWindow", at = @At("HEAD"), cancellable = true)
 	private void xaeroEnhance$scanOffThread(int windowRegionX, int windowRegionZ, int windowRegionSize, CallbackInfoReturnable<ListenableFuture<?>> cir) {
